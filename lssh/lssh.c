@@ -54,11 +54,11 @@ char **parse_commandline(char *str, char **args, int *args_count)
     return args;
 }
 
-// void handle_sigchld(int sig) {
-//     int saved_errno = errno;
-//     while (waitpid((pid_t)(-1), 0, WNOHANG) > 0) {}
-//     errno = saved_errno;
-// }
+void handle_sigchld() {
+    int saved_errno = errno;
+    while (waitpid((pid_t)(-1), 0, WNOHANG) > 0) {}
+    errno = saved_errno;
+}
 
 /**
  * Main
@@ -142,6 +142,14 @@ int main(void)
         } else if (rc > 0) {
             int status;
             if (bg_flag) {
+                struct sigaction sa;
+                sa.sa_handler = &handle_sigchld;
+                sigemptyset(&sa.sa_mask);
+                sa.sa_flags = SA_RESTART | SA_NOCLDSTOP;
+                    if (sigaction(SIGCHLD, &sa, 0) == -1) {
+                    perror(0);
+                    exit(1);
+                }
                 while (waitpid(-1, NULL, WNOHANG) > 0);
             } else {
                 waitpid(rc, &status, 0);

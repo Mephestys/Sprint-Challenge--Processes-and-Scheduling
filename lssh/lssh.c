@@ -3,6 +3,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <string.h>
+#include <errno.h>
 
 #define PROMPT "lambda-shell$ "
 
@@ -88,6 +89,16 @@ int main(void)
         // Exit the shell if args[0] is the built-in "exit" command
         if (strcmp(args[0], "exit") == 0) {
             break;
+        }
+
+        // Change directory if args[0] is the built-in "cd" command
+        if (strcmp(args[0], "cd") == 0) {
+            if (args_count < 2) {
+                printf("usage: cd directory\n");
+            } else if (chdir(args[1]) == -1) {
+                perror("chdir");
+            }
+            continue;
         }
 
         #if DEBUG

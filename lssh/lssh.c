@@ -179,7 +179,7 @@ int main(void)
             }
             execvp(args[0], args);
         }
-        file_flag = 0;
+        if (file_flag) file_flag = 0;
     }
 
     return 0;

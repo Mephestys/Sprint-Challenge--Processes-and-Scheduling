@@ -178,6 +178,8 @@ int main(void)
                 close(fd);
             }
             execvp(args[0], args);
+            perror("exec");
+            exit(1);
         }
         if (file_flag) file_flag = 0;
     }

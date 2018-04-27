@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #include <string.h>
 
@@ -101,7 +102,18 @@ int main(void)
         #endif
         
         /* Add your code for implementing the shell's logic here */
-        execvp(args[0], args);
+        pid_t rc = fork();
+
+        if (rc < 0) {
+            fprintf(stderr, "Fork failed, exiting.\n");
+            exit(1);
+        } else if (rc > 0) {
+            int status;
+            waitpid(rc, &status, 0);
+        } else {
+            execvp(args[0], args);
+        }
+        
     }
 
     return 0;

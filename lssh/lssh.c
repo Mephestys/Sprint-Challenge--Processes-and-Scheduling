@@ -150,7 +150,6 @@ int main(void)
                     perror(0);
                     exit(1);
                 }
-                while (waitpid(-1, NULL, WNOHANG) > 0);
             } else {
                 waitpid(rc, &status, 0);
             }

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/wait.h>
+#include <fcntl.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <string.h>
@@ -79,8 +80,9 @@ int main(void)
     // Flags for background processes and file outputs
     bool bg_flag = 0, file_flag = 0;
 
-    // File declarator
-    FILE *file = NULL;
+    // File declarators
+    int fd;
+    char *output_file;
 
     // Shell loops forever (until we tell it to exit)
     while (1) {
@@ -132,7 +134,9 @@ int main(void)
         for (int i = 1; args[i] != NULL; i++) {
             if (strcmp(args[i], ">") == 0) {
                 file_flag = 1;
+                output_file = args[i + 1];
             }
+            if (file_flag) args[i] = NULL;
         }
         
 
@@ -169,14 +173,13 @@ int main(void)
             }
         } else {
             if (file_flag) {
-                file = freopen(args[args_count - 1], "a+", stdout);
-            } else {
-                freopen("/dev/tty", "w", stdout);
-                if (file != NULL) fclose(file);
+                fd = open(output_file, O_WRONLY | O_CREAT, 0777);
+                dup2(fd, 1);
+                close(fd);
             }
             execvp(args[0], args);
         }
-        
+        file_flag = 0;
     }
 
     return 0;

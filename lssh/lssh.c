@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
+#include <stdbool.h>
 
 #define PROMPT "lambda-shell$ "
 
@@ -31,6 +32,7 @@
  *
  * @returns A copy of args for convenience.
  */
+
 char **parse_commandline(char *str, char **args, int *args_count)
 {
     char *token;
@@ -50,9 +52,16 @@ char **parse_commandline(char *str, char **args, int *args_count)
     return args;
 }
 
+void handle_sigchld(int sig) {
+    int saved_errno = errno;
+    while (waitpid((pid_t)(-1), 0, WNOHANG) > 0) {}
+    errno = saved_errno;
+}
+
 /**
  * Main
  */
+
 int main(void)
 {
     // Holds the command line the user types in
@@ -101,6 +110,13 @@ int main(void)
             continue;
         }
 
+        bool bg_flag = 0;
+
+        if (strcmp(args[args_count - 1], "&") == 0) {
+            args[args_count - 1] = NULL;
+            bg_flag = 1;
+        }
+
         #if DEBUG
 
         // Some debugging output
@@ -116,11 +132,15 @@ int main(void)
         pid_t rc = fork();
 
         if (rc < 0) {
-            fprintf(stderr, "Fork failed, exiting.\n");
+            perror("fork");
             exit(1);
         } else if (rc > 0) {
             int status;
-            waitpid(rc, &status, 0);
+            if (bg_flag) {
+                while (waitpid(-1, NULL, WNOHANG) > 0);
+            } else {
+                waitpid(rc, &status, 0);
+            }
         } else {
             execvp(args[0], args);
         }

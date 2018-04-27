@@ -11,6 +11,8 @@
 #define MAX_TOKENS 100
 #define COMMANDLINE_BUFSIZE 1024
 #define DEBUG 1  // Set to 1 to turn on some debugging output, or 0 to turn off
+#define ANSI_COLOR_CYAN "\x1b[36m"
+#define ANSI_COLOR_RESET "\x1b[0m"
 
 /**
  * Parse the command line.
@@ -52,11 +54,11 @@ char **parse_commandline(char *str, char **args, int *args_count)
     return args;
 }
 
-void handle_sigchld(int sig) {
-    int saved_errno = errno;
-    while (waitpid((pid_t)(-1), 0, WNOHANG) > 0) {}
-    errno = saved_errno;
-}
+// void handle_sigchld(int sig) {
+//     int saved_errno = errno;
+//     while (waitpid((pid_t)(-1), 0, WNOHANG) > 0) {}
+//     errno = saved_errno;
+// }
 
 /**
  * Main
@@ -76,7 +78,10 @@ int main(void)
     // Shell loops forever (until we tell it to exit)
     while (1) {
         // Print a prompt
+        char cwd[1024];
+        getcwd(cwd, sizeof(cwd));
         printf("%s", PROMPT);
+        printf(ANSI_COLOR_CYAN "%s: " ANSI_COLOR_RESET, cwd);
         fflush(stdout); // Force the line above to print
 
         // Read input from keyboard

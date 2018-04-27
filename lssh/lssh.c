@@ -73,6 +73,7 @@ int main(void)
 
     // Holds the parsed version of the command line
     char *args[MAX_TOKENS];
+    char **args_pipe;
 
     // How many command line args the user typed
     int args_count;
@@ -138,7 +139,15 @@ int main(void)
             }
             if (file_flag) args[i] = NULL;
         }
-        
+
+        args_pipe = NULL;
+
+        for (int i = 1; args[i] != NULL; i++) {
+            if (strcmp(args[i], "|") == 0) {
+                args_pipe = &(args[i + 1]);
+                args[i] = NULL;
+            }
+        }
 
         #if DEBUG
 
@@ -172,6 +181,28 @@ int main(void)
                 waitpid(pid, &status, 0);
             }
         } else {
+            if (args_pipe != NULL) {
+                int fds[2];
+                pipe(fds);
+                pid_t pc_pid = fork();
+
+                if (pc_pid < 0) {
+                    perror("fork");
+                    exit(1);
+                } else if (pc_pid == 0) {
+                    dup2(fds[0], 0);
+                    close(fds[1]);
+                    execvp(args_pipe[0], args_pipe);
+                    perror("exec");
+                    exit(1);
+                } else {
+                    dup2(fds[1], 1);
+                    close(fds[0]);
+                    execvp(args[0], args);
+                    perror("exec");
+                    exit(1);
+                }
+            }
             if (file_flag) {
                 fd = open(output_file, O_WRONLY | O_CREAT, 0777);
                 dup2(fd, 1);

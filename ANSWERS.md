@@ -10,7 +10,7 @@ Add your answers inline, below, with your pull request.
   * **Zombie:** The process has been terminated, but not reaped by it's parent (or cannot be reaped because its parent is already dead, leaving it stuck in a zombie state).
 
 2. What is a Zombie Process? How does it get created? How does it get destroyed?
-  * A zombie process occurs when a process informs it's parent that it is exiting, in the time between the process informing the parent, and the parent cleaning up the process, it is a zombie process. A process can get stuck in this state if the parent died before releasing any child processes.
+  * A zombie process occurs when a process informs it's parent that it is exiting, in the time between the process informing the parent, and the parent cleaning up the process, it is a zombie process. A process can get stuck in this state if the parent died before releasing any child processes. `init` can run through zombie processes in order to properly reap them.
 
 3. Describe the job of the Scheduler in the OS in general.
   * The scheduler makes sure that processes receive processing time, which can be accomplished in a variety of ways, some more efficient than others.

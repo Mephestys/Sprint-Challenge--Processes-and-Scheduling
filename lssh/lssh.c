@@ -152,12 +152,12 @@ int main(void)
         #endif
         
         /* Add your code for implementing the shell's logic here */
-        pid_t rc = fork();
+        pid_t pid = fork();
 
-        if (rc < 0) {
+        if (pid < 0) {
             perror("fork");
             exit(1);
-        } else if (rc > 0) {
+        } else if (pid > 0) {
             int status;
             if (bg_flag) {
                 struct sigaction sa;
@@ -169,7 +169,7 @@ int main(void)
                     exit(1);
                 }
             } else {
-                waitpid(rc, &status, 0);
+                waitpid(pid, &status, 0);
             }
         } else {
             if (file_flag) {

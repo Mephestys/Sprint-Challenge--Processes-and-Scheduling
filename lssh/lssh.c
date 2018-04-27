@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/wait.h>
+#include <sys/types.h>
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
@@ -75,6 +76,12 @@ int main(void)
     // How many command line args the user typed
     int args_count;
 
+    // Flags for background processes and file outputs
+    bool bg_flag = 0, file_flag = 0;
+
+    // File declarator
+    FILE *file = NULL;
+
     // Shell loops forever (until we tell it to exit)
     while (1) {
         // Print a prompt
@@ -115,12 +122,19 @@ int main(void)
             continue;
         }
 
-        bool bg_flag = 0;
-
+        // Run process in background
         if (strcmp(args[args_count - 1], "&") == 0) {
             args[args_count - 1] = NULL;
             bg_flag = 1;
         }
+
+        // Output to file
+        for (int i = 1; args[i] != NULL; i++) {
+            if (strcmp(args[i], ">") == 0) {
+                file_flag = 1;
+            }
+        }
+        
 
         #if DEBUG
 
@@ -154,6 +168,12 @@ int main(void)
                 waitpid(rc, &status, 0);
             }
         } else {
+            if (file_flag) {
+                file = freopen(args[args_count - 1], "a+", stdout);
+            } else {
+                freopen("/dev/tty", "w", stdout);
+                if (file != NULL) fclose(file);
+            }
             execvp(args[0], args);
         }
         
